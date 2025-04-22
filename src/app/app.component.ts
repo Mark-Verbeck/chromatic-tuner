@@ -20,6 +20,7 @@ export class AppComponent {
   playingNote: string | undefined = undefined
   centsOff: number = 0;
   tuningValue: number = 0;
+  intervalId: any;
 
   constructor(public microphoneService: MicrophoneService, public autoCorrelationService: AutoCorrelationService) {
     this.analyzerNode = this.audioContext.createAnalyser();
@@ -35,7 +36,29 @@ export class AppComponent {
        if(this.analyzerNode){
           this.source.connect(this.analyzerNode)
        }
-       setInterval(()=> this.analyze(), 10)
+       this.intervalId = setInterval(()=> this.analyze(), 10)
+  }
+
+  microphoneOff() {
+    if (this.stream) {
+      // Stop all tracks in the media stream
+      this.stream.getTracks().forEach(track => track.stop());
+      this.stream = null;
+    }
+
+    if (this.source) {
+      // Disconnect the audio source from the analyzer node
+      this.source.disconnect();
+      this.source = null;
+    }
+
+    if (this.analyzerNode) {
+      // Optionally disconnect the analyzer node
+      this.analyzerNode.disconnect();
+    }
+
+    // Clear any intervals set for analysis
+    clearInterval(this.intervalId);
   }
 
   analyze(){
